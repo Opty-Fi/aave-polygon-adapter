@@ -1,8 +1,7 @@
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
-import { Fixture } from "ethereum-waffle";
-import { HarvestFinanceAdapter } from "../../typechain/HarvestFinanceAdapter";
-import { IUniswapV2Router02 } from "../../typechain/IUniswapV2Router02";
-import { TestDeFiAdapter } from "../../typechain/TestDeFiAdapter";
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import { Fixture, MockContract } from "ethereum-waffle";
+import { Artifact } from "hardhat/types";
+import { AaveAdapter, TestDeFiAdapter } from "../typechain";
 
 export interface Signers {
   admin: SignerWithAddress;
@@ -14,6 +13,7 @@ export interface Signers {
   dave: SignerWithAddress;
   eve: SignerWithAddress;
   operator: SignerWithAddress;
+  riskOperator: SignerWithAddress;
 }
 
 export interface PoolItem {
@@ -24,17 +24,30 @@ export interface PoolItem {
   tokens: string[];
   swap?: string;
   deprecated?: boolean;
+  tokenIndexes: string[];
+}
+
+export interface GaugeItem {
+  pool: string;
+  lpToken: string;
+  rewardTokens?: string[];
+  tokens: string[];
 }
 
 export interface LiquidityPool {
   [name: string]: PoolItem;
 }
 
+export interface GaugePool {
+  [name: string]: GaugeItem;
+}
+
 declare module "mocha" {
   export interface Context {
-    harvestFinanceAdapter: HarvestFinanceAdapter;
-    testDeFiAdapter: TestDeFiAdapter;
-    uniswapV2Router02: IUniswapV2Router02;
+    aaveAdapter: AaveAdapter;
+    testDeFiAdapterArtifact: Artifact;
+    testDeFiAdapterForAave: TestDeFiAdapter;
+    mockRegistry: MockContract;
     loadFixture: <T>(fixture: Fixture<T>) => Promise<T>;
     signers: Signers;
   }
