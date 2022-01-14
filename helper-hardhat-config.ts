@@ -1,7 +1,7 @@
 import { HardhatNetworkForkingUserConfig } from "hardhat/types";
 import { resolve } from "path";
 import { config as dotenvConfig } from "dotenv";
-import { ePolygonNetwork } from "./helpers/types";
+import { ePolygonNetwork, iPolygonParamsPerNetwork } from "./helpers/types";
 
 dotenvConfig({ path: resolve(__dirname, "./.env") });
 
@@ -12,21 +12,17 @@ const FORK_BLOCK_NUMBER = process.env.FORK_BLOCK_NUMBER ? parseInt(process.env.F
 
 const GWEI = 30 * 1000 * 1000;
 
-export type iParamsPerNetwork<T> = {
-  [key in ePolygonNetwork]: T;
-};
-
-export const NETWORKS_RPC_URL: iParamsPerNetwork<string> = {
+export const NETWORKS_RPC_URL: iPolygonParamsPerNetwork<string> = {
   [ePolygonNetwork.mumbai]: MUMBAI_RPC_URL,
   [ePolygonNetwork.matic]: MATIC_RPC_URL,
 };
 
-export const NETWORKS_DEFAULT_GAS: iParamsPerNetwork<number | "auto"> = {
+export const NETWORKS_DEFAULT_GAS: iPolygonParamsPerNetwork<number | "auto"> = {
   [ePolygonNetwork.mumbai]: 1 * GWEI,
   [ePolygonNetwork.matic]: "auto",
 };
 
-export const NETWORKS_CHAIN_ID: iParamsPerNetwork<number | "auto"> = {
+export const NETWORKS_CHAIN_ID: iPolygonParamsPerNetwork<number> = {
   [ePolygonNetwork.mumbai]: 80001,
   [ePolygonNetwork.matic]: 137,
 };

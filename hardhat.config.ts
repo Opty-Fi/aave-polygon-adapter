@@ -15,7 +15,7 @@ dotenvConfig({ path: resolve(__dirname, "./.env") });
 const SKIP_LOAD = process.env.SKIP_LOAD === "true";
 const MNEMONIC_PATH = "m/44'/60'/0'/0";
 const MNEMONIC = process.env.MNEMONIC || "";
-const NETWORK = process.env.NETWORK || "hardhat";
+const NETWORK = (process.env.NETWORK || "hardhat") as ePolygonNetwork;
 
 // Prevent to load scripts before compilation and typechain
 if (!SKIP_LOAD) {
@@ -31,7 +31,7 @@ if (!SKIP_LOAD) {
   require("./tasks/clean");
 }
 
-const getCommonNetworkConfig = (networkName: eNetwork): NetworkUserConfig | undefined => ({
+const getCommonNetworkConfig = (networkName: ePolygonNetwork): NetworkUserConfig | undefined => ({
   url: NETWORKS_RPC_URL[networkName],
   gasPrice: "auto",
   chainId: NETWORKS_CHAIN_ID[networkName],
