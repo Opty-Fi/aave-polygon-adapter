@@ -1,4 +1,4 @@
-name: Opty-Fi protocol's DeFi adapter kit Install, lint and test pipeline
+name: Aave on Polygon Adapter - Install, lint and test pipeline
 
 on:
   pull_request:
@@ -17,7 +17,7 @@ jobs:
         node-version: [12.x.x]
     
     env:
-      MAIN_RPC_URL: ${{ secrets.MAIN_RPC_URL}}
+      MATIC_RPC_URL: ${{ secrets.MATIC_RPC_URL}}
       MNEMONIC: ${{ secrets.MNEMONIC}}
 
     steps:
@@ -43,7 +43,7 @@ jobs:
         node-version: [12.x.x]
     
     env:
-      MAIN_RPC_URL: ${{ secrets.MAIN_RPC_URL}}
+      MATIC_RPC_URL: ${{ secrets.MATIC_RPC_URL}}
       MNEMONIC: ${{ secrets.MNEMONIC}}
 
     steps:
@@ -62,14 +62,14 @@ jobs:
       - name: Compile
         run: |
           yarn compile
-  ethereum-test:
+  matic-test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
         node-version: [12.x.x]
     
     env:
-      MAIN_RPC_URL: ${{ secrets.MAIN_RPC_URL}}
+      MATIC_RPC_URL: ${{ secrets.MATIC_RPC_URL}}
       MNEMONIC: ${{ secrets.MNEMONIC}}
 
     steps:
@@ -88,4 +88,4 @@ jobs:
           yarn typechain
       - name: Test
         run: |
-          yarn test:ethereum:fork
+          yarn test:matic:fork
