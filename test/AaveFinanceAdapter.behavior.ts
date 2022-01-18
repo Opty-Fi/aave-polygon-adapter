@@ -9,7 +9,7 @@ import {
   ERC20,
 } from "../typechain";
 import { expect } from "chai";
-import { setTokenBalanceInStorage } from "./utils";
+import { setTokenBalanceInStorage, moveToNextBlock } from "./utils";
 export function shouldBeHaveLikeAaveAdapter(token: string, pool: PoolItem): void {
   describe(`${token}, pool address : ${pool.pool}, lpToken address: ${pool.lpToken}`, async function () {
     let decimals: string;
@@ -249,6 +249,8 @@ export function shouldBeHaveLikeAaveAdapter(token: string, pool: PoolItem): void
 
       expect(currentLpTokenBalance).to.gt(previousLpTokenBalance);
       expect(currentBalance).to.eq(previousBalance.sub(caculatedAmount));
+
+      await moveToNextBlock(hre);
     });
     it(`20. Only RiskOperator can set 0.12% pool investment limit`, async function () {
       const pct = 12;
@@ -281,6 +283,8 @@ export function shouldBeHaveLikeAaveAdapter(token: string, pool: PoolItem): void
 
       expect(currentLpTokenBalance).to.gt(previousLpTokenBalance);
       expect(currentBalance).to.eq(previousBalance.sub(caculatedAmount));
+
+      await moveToNextBlock(hre);
     });
     it(`22. Withdraw all available ${lpTokenSymbol}`, async function () {
       const previousBalance = await erc20Contract.balanceOf(this.testDeFiAdapter.address);
@@ -297,6 +301,8 @@ export function shouldBeHaveLikeAaveAdapter(token: string, pool: PoolItem): void
 
       expect(currentLpTokenBalance).to.lt(previousLpTokenBalance);
       expect(currentBalance).to.gt(previousBalance);
+
+      await moveToNextBlock(hre);
     });
   });
 }
