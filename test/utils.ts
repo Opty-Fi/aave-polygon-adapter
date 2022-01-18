@@ -82,6 +82,12 @@ export async function moveToNextBlock(hre: HardhatRuntimeEnvironment): Promise<v
   await moveToSpecificBlock(hre, block.timestamp);
 }
 
+export async function moveToBlockAfterSeconds(hre: HardhatRuntimeEnvironment, seconds: number): Promise<void> {
+  const blockNumber = await hre.ethers.provider.getBlockNumber();
+  const block = await hre.ethers.provider.getBlock(blockNumber);
+  await moveToSpecificBlock(hre, block.timestamp + seconds);
+}
+
 export async function moveToSpecificBlock(hre: HardhatRuntimeEnvironment, timestamp: number): Promise<void> {
   await hre.network.provider.send("evm_setNextBlockTimestamp", [timestamp + 1]);
   await hre.network.provider.send("evm_mine");
