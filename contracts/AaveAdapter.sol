@@ -14,11 +14,20 @@ import { AdapterModifiersBase } from "./utils/AdapterModifiersBase.sol";
 import "./utils/AdapterInvestLimitBase.sol";
 
 //  interfaces
-import { IAaveLendingPoolAddressesProvider } from "@optyfi/defi-legos/polygon/aave/contracts/IAaveLendingPoolAddressesProvider.sol";
-import { IAaveLendingPoolAddressesProviderRegistry } from "@optyfi/defi-legos/polygon/aave/contracts/IAaveLendingPoolAddressesProviderRegistry.sol";
+import {
+    IAaveLendingPoolAddressesProvider
+} from "@optyfi/defi-legos/polygon/aave/contracts/IAaveLendingPoolAddressesProvider.sol";
+import {
+    IAaveLendingPoolAddressesProviderRegistry
+} from "@optyfi/defi-legos/polygon/aave/contracts/IAaveLendingPoolAddressesProviderRegistry.sol";
 import { IAave, ReserveData } from "@optyfi/defi-legos/polygon/aave/contracts/IAave.sol";
 import { IAToken } from "@optyfi/defi-legos/polygon/aave/contracts/IAToken.sol";
-import { IAaveProtocolDataProvider, UserReserveData, ReserveDataProtocol, ReserveConfigurationData } from "@optyfi/defi-legos/polygon/aave/contracts/IAaveProtocolDataProvider.sol";
+import {
+    IAaveProtocolDataProvider,
+    UserReserveData,
+    ReserveDataProtocol,
+    ReserveConfigurationData
+} from "@optyfi/defi-legos/polygon/aave/contracts/IAaveProtocolDataProvider.sol";
 import { IAdapter } from "@optyfi/defi-legos/interfaces/defiAdapters/contracts/IAdapter.sol";
 import "@optyfi/defi-legos/interfaces/defiAdapters/contracts/IAdapterInvestLimit.sol";
 
@@ -58,11 +67,8 @@ contract AaveAdapter is IAdapter, AdapterInvestLimitBase {
         address _underlyingToken,
         address _liquidityPoolAddressProviderRegistry
     ) public view override returns (bytes[] memory) {
-        uint256 _redeemAmount = getLiquidityPoolTokenBalance(
-            _vault,
-            _underlyingToken,
-            _liquidityPoolAddressProviderRegistry
-        );
+        uint256 _redeemAmount =
+            getLiquidityPoolTokenBalance(_vault, _underlyingToken, _liquidityPoolAddressProviderRegistry);
         return getWithdrawSomeCodes(_vault, _underlyingToken, _liquidityPoolAddressProviderRegistry, _redeemAmount);
     }
 
@@ -197,12 +203,13 @@ contract AaveAdapter is IAdapter, AdapterInvestLimitBase {
         address _liquidityPoolAddressProviderRegistry,
         uint256 _amount
     ) public view override returns (bytes[] memory _codes) {
-        uint256 _depositAmount = _getDepositAmount(
-            _liquidityPoolAddressProviderRegistry,
-            _underlyingToken,
-            _amount,
-            getPoolValue(_liquidityPoolAddressProviderRegistry, _underlyingToken)
-        );
+        uint256 _depositAmount =
+            _getDepositAmount(
+                _liquidityPoolAddressProviderRegistry,
+                _underlyingToken,
+                _amount,
+                getPoolValue(_liquidityPoolAddressProviderRegistry, _underlyingToken)
+            );
         if (_depositAmount > 0) {
             address _lendingPool = _getLendingPool(_liquidityPoolAddressProviderRegistry);
             _codes = new bytes[](3);
@@ -238,10 +245,8 @@ contract AaveAdapter is IAdapter, AdapterInvestLimitBase {
     ) public view override returns (bytes[] memory _codes) {
         if (_amount > 0) {
             address _lendingPool = _getLendingPool(_liquidityPoolAddressProviderRegistry);
-            address _liquidityPoolToken = getLiquidityPoolToken(
-                _underlyingToken,
-                _liquidityPoolAddressProviderRegistry
-            );
+            address _liquidityPoolToken =
+                getLiquidityPoolToken(_underlyingToken, _liquidityPoolAddressProviderRegistry);
             _codes = new bytes[](3);
             _codes[0] = abi.encode(
                 _liquidityPoolToken,
