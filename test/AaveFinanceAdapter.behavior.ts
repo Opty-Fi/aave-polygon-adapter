@@ -5,9 +5,11 @@ import {
   IAaveLendingPoolAddressesProvider,
   IAaveLendingPoolAddressesProviderRegistry,
   IAaveProtocolDataProvider,
+  IAaveIncentivesController,
   IAave,
   ERC20,
 } from "../typechain";
+import { AaveIncentivesController } from "@optyfi/defi-legos/polygon/aave";
 import { expect } from "chai";
 import { setTokenBalanceInStorage, moveToBlockAfterSeconds } from "./utils";
 export function shouldBeHaveLikeAaveAdapter(token: string, pool: PoolItem): void {
@@ -18,8 +20,10 @@ export function shouldBeHaveLikeAaveAdapter(token: string, pool: PoolItem): void
     let lendingProvider: IAaveLendingPoolAddressesProvider;
     let protocolDataProvider: IAaveProtocolDataProvider;
     let lendingPool: IAave;
-    let erc20Contract: ERC20;
+    let incentiveContract: IAaveIncentivesController;
     let lpTokenContract: ERC20;
+    let rewardTokenContract: ERC20;
+    let erc20Contract: ERC20;
     let lpTokenSymbol: string = "";
     before(async function () {
       erc20Contract = await hre.ethers.getContractAt("ERC20", tokens[0]);
@@ -32,6 +36,11 @@ export function shouldBeHaveLikeAaveAdapter(token: string, pool: PoolItem): void
         "IAaveLendingPoolAddressesProviderRegistry",
         providerRegistryAddress,
       );
+
+      incentiveContract = await hre.ethers.getContractAt("IAaveIncentivesController", AaveIncentivesController.address);
+
+      rewardTokenContract = await hre.ethers.getContractAt("ERC20", await incentiveContract.REWARD_TOKEN());
+
       lendingProvider = await hre.ethers.getContractAt(
         "IAaveLendingPoolAddressesProvider",
         (
@@ -82,7 +91,7 @@ export function shouldBeHaveLikeAaveAdapter(token: string, pool: PoolItem): void
     });
     it("7. getRewardToken() should return zero address", async function () {
       expect(await this.aaveAdapter.getRewardToken(hre.ethers.constants.AddressZero)).to.be.eq(
-        hre.ethers.constants.AddressZero,
+        await incentiveContract.REWARD_TOKEN(),
       );
     });
     it("8. getDepositSomeCodes() should return correct code", async function () {
@@ -141,7 +150,6 @@ export function shouldBeHaveLikeAaveAdapter(token: string, pool: PoolItem): void
 
       const currentBalance = await erc20Contract.balanceOf(this.testDeFiAdapter.address);
       const currentLpTokenBalance = await lpTokenContract.balanceOf(this.testDeFiAdapter.address);
-
       expect(currentLpTokenBalance).to.gt(previousLpTokenBalance);
       expect(currentBalance).to.lt(previousBalance);
     });
@@ -303,6 +311,40 @@ export function shouldBeHaveLikeAaveAdapter(token: string, pool: PoolItem): void
       expect(currentBalance).to.gt(previousBalance);
 
       await moveToBlockAfterSeconds(hre, 10000);
+    });
+    it(`23. getUnclaimedRewardTokenAmount() should return correct amount`, async function () {
+      expect(await incentiveContract.getUserUnclaimedRewards(this.testDeFiAdapter.address)).to.be.eq(
+        await this.aaveAdapter.getUnclaimedRewardTokenAmount(
+          this.testDeFiAdapter.address,
+          hre.ethers.constants.AddressZero,
+          hre.ethers.constants.AddressZero,
+        ),
+      );
+    });
+    it(`24. Claim all reward token`, async function () {
+      const previousBalance = await rewardTokenContract.balanceOf(this.testDeFiAdapter.address);
+
+      await this.testDeFiAdapter.testClaimRewardTokenCode(providerRegistryAddress, this.aaveAdapter.address);
+
+      const currentBalance = await rewardTokenContract.balanceOf(this.testDeFiAdapter.address);
+
+      expect(currentBalance).to.gt(previousBalance);
+    });
+    it(`25. Harvest all reward token`, async function () {
+      if (erc20Contract.address === rewardTokenContract.address) {
+        this.skip();
+      }
+      const previousBalance = await erc20Contract.balanceOf(this.testDeFiAdapter.address);
+
+      await this.testDeFiAdapter.testGetHarvestAllCodes(
+        hre.ethers.constants.AddressZero,
+        erc20Contract.address,
+        this.aaveAdapter.address,
+      );
+
+      const currentBalance = await erc20Contract.balanceOf(this.testDeFiAdapter.address);
+
+      expect(currentBalance).to.gt(previousBalance);
     });
   });
 }
