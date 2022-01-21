@@ -4,7 +4,6 @@ pragma solidity >0.6.0 <0.9.0;
 
 //  libraries
 import { Address } from "@openzeppelin/contracts/utils/Address.sol";
-import { SafeMath } from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 // helper contracts
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
@@ -14,7 +13,6 @@ import { AdapterModifiersBase } from "./AdapterModifiersBase.sol";
 import "@optyfi/defi-legos/interfaces/defiAdapters/contracts/IAdapterInvestLimit.sol";
 
 abstract contract AdapterInvestLimitBase is IAdapterInvestLimit, AdapterModifiersBase {
-    using SafeMath for uint256;
     using Address for address;
 
     /** @notice max deposit value datatypes */
@@ -109,8 +107,8 @@ abstract contract AdapterInvestLimitBase is IAdapterInvestLimit, AdapterModifier
         uint256 _poolPct = maxDepositPoolPct[_liquidityPool];
         uint256 _limit =
             _poolPct == 0
-                ? _poolValue.mul(maxDepositProtocolPct).div(uint256(10000))
-                : _poolValue.mul(_poolPct).div(uint256(10000));
+                ? (_poolValue * maxDepositProtocolPct) / uint256(10000)
+                : (_poolValue * _poolPct) / uint256(10000);
         return _limit;
     }
 }

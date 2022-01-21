@@ -5,7 +5,6 @@ pragma solidity =0.8.11;
 pragma experimental ABIEncoderV2;
 
 //  libraries
-import { SafeMath } from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import { Address } from "@openzeppelin/contracts/utils/Address.sol";
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
@@ -35,15 +34,14 @@ import "@optyfi/defi-legos/interfaces/defiAdapters/contracts/IAdapterInvestLimit
 import "@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol";
 
 /**
- * @title Adapter for AaveV2 protocol
+ * @title Adapter for Aave protocol
  * @author Opty.fi
- * @dev Abstraction layer to AaveV2's pools
+ * @dev Abstraction layer to Aave's pools
  */
 contract AaveAdapter is IAdapter, IAdapterHarvestReward, AdapterInvestLimitBase {
-    using SafeMath for uint256;
     using Address for address;
 
-    /** @notice AaveV2's Data provider id */
+    /** @notice Aave's Data provider id */
     bytes32 public constant PROTOCOL_DATA_PROVIDER_ID =
         0x0100000000000000000000000000000000000000000000000000000000000000;
 
