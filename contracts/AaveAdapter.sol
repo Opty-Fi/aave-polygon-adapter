@@ -373,7 +373,7 @@ contract AaveAdapter is IAdapter, IAdapterHarvestReward, AdapterInvestLimitBase 
     }
 
     /**
-     * @dev Get the codes for harvesting the tokens using uniswap like routers - i.e. swapping back into the underlying
+     * @dev Get the codes for harvesting the tokens using quickswap like routers-i.e. swapping back into the underlying
      * @param _vault Vault contract address
      * @param _rewardToken Reward token address
      * @param _underlyingToken Token address acting as underlying Asset for the vault contract
