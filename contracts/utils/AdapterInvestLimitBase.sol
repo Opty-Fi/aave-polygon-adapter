@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: gpl-3.0
 
-pragma solidity >0.6.0 <0.9.0;
+pragma solidity >=0.8.0 <0.9.0;
 
 //  libraries
 import { Address } from "@openzeppelin/contracts/utils/Address.sol";
