@@ -1,5 +1,6 @@
 import { TransactionRequest } from "@ethersproject/providers";
 import hre, { ethers } from "hardhat";
+import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { ERC20 } from "../typechain";
 
 export function getOverrideOptions(): TransactionRequest {
@@ -73,4 +74,21 @@ export async function setTokenBalanceInStorage(token: ERC20, account: string, am
           .padStart(64, "0"),
     );
   }
+}
+
+export async function moveToNextBlock(hre: HardhatRuntimeEnvironment): Promise<void> {
+  const blockNumber = await hre.ethers.provider.getBlockNumber();
+  const block = await hre.ethers.provider.getBlock(blockNumber);
+  await moveToSpecificBlock(hre, block.timestamp);
+}
+
+export async function moveToBlockAfterSeconds(hre: HardhatRuntimeEnvironment, seconds: number): Promise<void> {
+  const blockNumber = await hre.ethers.provider.getBlockNumber();
+  const block = await hre.ethers.provider.getBlock(blockNumber);
+  await moveToSpecificBlock(hre, block.timestamp + seconds);
+}
+
+export async function moveToSpecificBlock(hre: HardhatRuntimeEnvironment, timestamp: number): Promise<void> {
+  await hre.network.provider.send("evm_setNextBlockTimestamp", [timestamp + 1]);
+  await hre.network.provider.send("evm_mine");
 }
