@@ -5,8 +5,8 @@ pragma solidity =0.8.11;
 pragma experimental ABIEncoderV2;
 
 //  libraries
-import { Address } from "@openzeppelin/contracts/utils/Address.sol";
-import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import { Address } from "@openzeppelin/contracts-0.8.x/utils/Address.sol";
+import { ERC20 } from "@openzeppelin/contracts-0.8.x/token/ERC20/ERC20.sol";
 
 //  helper contracts
 import { AdapterModifiersBase } from "./utils/AdapterModifiersBase.sol";
@@ -251,7 +251,7 @@ contract AaveAdapter is IAdapter, IAdapterHarvestReward, AdapterInvestLimitBase 
         address,
         address,
         uint256 _liquidityPoolTokenAmount
-    ) external view override returns (uint256) {
+    ) external pure override returns (uint256) {
         return _liquidityPoolTokenAmount;
     }
 
@@ -262,7 +262,7 @@ contract AaveAdapter is IAdapter, IAdapterHarvestReward, AdapterInvestLimitBase 
         address,
         address,
         uint256 _underlyingTokenAmount
-    ) external view override returns (uint256) {
+    ) external pure override returns (uint256) {
         return _underlyingTokenAmount;
     }
 
@@ -274,7 +274,7 @@ contract AaveAdapter is IAdapter, IAdapterHarvestReward, AdapterInvestLimitBase 
         address,
         address,
         uint256 _redeemAmount
-    ) external view override returns (uint256) {
+    ) external pure override returns (uint256) {
         return _redeemAmount;
     }
 
@@ -294,7 +294,7 @@ contract AaveAdapter is IAdapter, IAdapterHarvestReward, AdapterInvestLimitBase 
     /**
      * @inheritdoc IAdapter
      */
-    function canStake(address) external view override returns (bool) {
+    function canStake(address) external pure override returns (bool) {
         return false;
     }
 
