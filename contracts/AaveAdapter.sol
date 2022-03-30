@@ -57,7 +57,7 @@ contract AaveAdapter is IAdapter, IAdapterHarvestReward, AdapterInvestLimitBase 
     address public constant incentivesController = address(0x357D51124f59836DeD84c8a1730D72B749d8BC23);
 
     /* solhint-disable no-empty-blocks */
-    constructor(address _registry) public AdapterModifiersBase(_registry) {}
+    constructor(address _registry) AdapterModifiersBase(_registry) {}
 
     /**
      * @inheritdoc IAdapter
