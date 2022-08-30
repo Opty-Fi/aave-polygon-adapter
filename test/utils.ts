@@ -1,8 +1,13 @@
 import { TransactionRequest } from "@ethersproject/providers";
 import hre, { ethers } from "hardhat";
+import { getAddress, parseEther } from "ethers/lib/utils";
+
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { ERC20 } from "../typechain";
-
+import ethTokens from "@optyfi/defi-legos/ethereum/tokens/wrapped_tokens";
+import polygonTokens from "@optyfi/defi-legos/polygon/tokens";
+import avaxTokens from "@optyfi/defi-legos/avalanche/tokens";
+import IWETH from "@uniswap/v2-periphery/build/IWETH.json";
 export const CONTRACTS = {
   IAaveV2LendingPoolAddressesProviderRegistry:
     "@optyfi/defi-legos/polygon/aave/contracts/IAaveLendingPoolAddressesProviderRegistry.sol:IAaveLendingPoolAddressesProviderRegistry",
@@ -70,35 +75,49 @@ const tokenBalancesSlot = async (token: ERC20) => {
   throw "balances slot not found!";
 };
 
-// Source : https://blog.euler.finance/brute-force-storage-layout-discovery-in-erc20-contracts-with-hardhat-7ff9342143ed
-export async function setTokenBalanceInStorage(token: ERC20, account: string, amount: string) {
-  const balancesSlot = await tokenBalancesSlot(token);
-  if (balancesSlot.isVyper) {
-    return setStorageAt(
-      token.address,
-      ethers.utils.keccak256(
-        ethers.utils.defaultAbiCoder.encode(["uint256", "address"], [balancesSlot.index, account]),
-      ),
-      "0x" +
-        ethers.utils
-          .parseUnits(amount, await token.decimals())
-          .toHexString()
-          .slice(2)
-          .padStart(64, "0"),
-    );
+// Source : https://github.com/Opty-Fi/defi-adapter-kit/blob/e41ab7607f737b9322b3d19d2144b0f94efc692d/test/utils.ts
+export async function setTokenBalanceInStorage(token: ERC20, account: string, amount: string): Promise<number | void> {
+  if (
+    [getAddress(ethTokens.WETH), getAddress(polygonTokens.WMATIC), getAddress(avaxTokens.WAVAX)].includes(
+      getAddress(token.address),
+    )
+  ) {
+    const weth = await ethers.getContractAt(IWETH.abi, token.address);
+    await weth.deposit({ value: parseEther(amount) });
+    await weth.transfer(account, parseEther(amount));
   } else {
-    return setStorageAt(
-      token.address,
-      ethers.utils.keccak256(
-        ethers.utils.defaultAbiCoder.encode(["address", "uint256"], [account, balancesSlot.index]),
-      ),
-      "0x" +
+    const balancesSlot = await tokenBalancesSlot(token);
+    if (balancesSlot.isVyper) {
+      return setStorageAt(
+        token.address,
         ethers.utils
-          .parseUnits(amount, await token.decimals())
-          .toHexString()
-          .slice(2)
-          .padStart(64, "0"),
-    );
+          .keccak256(ethers.utils.defaultAbiCoder.encode(["uint256", "address"], [balancesSlot.index, account]))
+          .replace("0x0", "0x"),
+        "0x" +
+          ethers.utils
+            .parseUnits(amount, await token.decimals())
+            .toHexString()
+            .slice(2)
+            .padStart(64, "0"),
+      );
+    } else {
+      let slot = ethers.utils.keccak256(
+        ethers.utils.defaultAbiCoder.encode(["address", "uint256"], [account, balancesSlot.index]),
+      );
+      if (slot.startsWith("0x0")) {
+        slot = slot.replace("0x0", "0x");
+      }
+      return setStorageAt(
+        token.address,
+        slot.replace("0x0", "0x"),
+        "0x" +
+          ethers.utils
+            .parseUnits(amount, await token.decimals())
+            .toHexString()
+            .slice(2)
+            .padStart(64, "0"),
+      );
+    }
   }
 }
 

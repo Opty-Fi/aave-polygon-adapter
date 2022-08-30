@@ -23,6 +23,7 @@ export function shouldBeHaveLikeAaveAdapter(token: string, pool: PoolItem): void
     let incentiveContract: IAaveIncentivesController;
     let lpTokenContract: ERC20;
     let rewardTokenContract: ERC20;
+    let skipRewards: boolean;
     let erc20Contract: ERC20;
     let lpTokenSymbol: string = "";
     before(async function () {
@@ -38,7 +39,8 @@ export function shouldBeHaveLikeAaveAdapter(token: string, pool: PoolItem): void
       );
 
       incentiveContract = await hre.ethers.getContractAt("IAaveIncentivesController", AaveIncentivesController.address);
-
+      console.log(incentiveContract.address);
+      skipRewards = (await incentiveContract.assets(pool.lpToken)).emissionPerSecond.gt(0) ? false : true;
       rewardTokenContract = await hre.ethers.getContractAt("ERC20", await incentiveContract.REWARD_TOKEN());
 
       lendingProvider = await hre.ethers.getContractAt(
@@ -322,6 +324,9 @@ export function shouldBeHaveLikeAaveAdapter(token: string, pool: PoolItem): void
       );
     });
     it(`24. Claim all reward token`, async function () {
+      if (skipRewards) {
+        this.skip();
+      }
       const previousBalance = await rewardTokenContract.balanceOf(this.testDeFiAdapter.address);
 
       await this.testDeFiAdapter.testClaimRewardTokenCode(providerRegistryAddress, this.aaveAdapter.address);
@@ -331,6 +336,10 @@ export function shouldBeHaveLikeAaveAdapter(token: string, pool: PoolItem): void
       expect(currentBalance).to.gt(previousBalance);
     });
     it(`25. Harvest all reward token`, async function () {
+      if (skipRewards) {
+        this.skip();
+      }
+
       if (erc20Contract.address === rewardTokenContract.address) {
         this.skip();
       }

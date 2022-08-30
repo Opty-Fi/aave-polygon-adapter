@@ -1,8 +1,8 @@
 import hre from "hardhat";
 import { Artifact } from "hardhat/types";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import AaveAdapterParticulars from "@optyfi/defi-legos/polygon/aave";
-import { AaveAdapter, TestDeFiAdapter } from "../typechain";
+import AaveAdapterParticulars from "@optyfi/defi-legos/polygon/aavev3";
+import { AaveV3Adapter, TestDeFiAdapter } from "../typechain";
 import { LiquidityPool, PoolItem, Signers } from "./types";
 import { shouldBeHaveLikeAaveAdapter } from "./AaveV3Adapter.behavior";
 const { pools }: { pools: LiquidityPool } = AaveAdapterParticulars;
@@ -24,8 +24,8 @@ describe("Aave V3 on Polygon", function () {
     this.testDeFiAdapter = <TestDeFiAdapter>(
       await hre.waffle.deployContract(this.signers.deployer, testDeFiAdapterArtifact)
     );
-    const aaveAdapterArtifact: Artifact = await hre.artifacts.readArtifact("AaveAdapter");
-    this.aaveV3Adapter = <AaveAdapter>(
+    const aaveAdapterArtifact: Artifact = await hre.artifacts.readArtifact("AaveV3Adapter");
+    this.aaveV3Adapter = <AaveV3Adapter>(
       await hre.waffle.deployContract(this.signers.deployer, aaveAdapterArtifact, [this.mockRegistry.address])
     );
   });

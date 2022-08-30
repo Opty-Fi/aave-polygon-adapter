@@ -1,6 +1,6 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { Fixture, MockContract } from "ethereum-waffle";
-import { AaveAdapter, TestDeFiAdapter } from "../typechain";
+import { AaveAdapter, TestDeFiAdapter, AaveV3Adapter } from "../typechain";
 
 export interface Signers {
   admin: SignerWithAddress;
@@ -28,7 +28,7 @@ export interface LiquidityPool {
 declare module "mocha" {
   export interface Context {
     aaveAdapter: AaveAdapter;
-    aaveV3Adapter: AaveAdapter;
+    aaveV3Adapter: AaveV3Adapter;
     testDeFiAdapter: TestDeFiAdapter;
     mockRegistry: MockContract;
     loadFixture: <T>(fixture: Fixture<T>) => Promise<T>;

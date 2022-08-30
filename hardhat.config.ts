@@ -57,7 +57,7 @@ const config: HardhatUserConfig = {
         count: 20,
         mnemonic: MNEMONIC,
         path: MNEMONIC_PATH,
-        accountsBalance: "10000000000000000000000",
+        accountsBalance: "1000000000000000000000000000",
       },
       forking: buildForkConfig(),
     },

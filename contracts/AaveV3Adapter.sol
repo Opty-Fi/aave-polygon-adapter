@@ -13,8 +13,8 @@ import "./utils/AdapterInvestLimitBase.sol";
 
 //  interfaces
 import {
-    IAaveLendingPoolAddressesProvider
-} from "@optyfi/defi-legos/polygon/aave/contracts/IAaveLendingPoolAddressesProvider.sol";
+    IAaveV3LendingPoolAddressesProvider
+} from "@optyfi/defi-legos/polygon/aavev3/contracts/IAaveV3LendingPoolAddressesProvider.sol";
 import {
     IAaveV3LendingPoolAddressesProviderRegistry
 } from "@optyfi/defi-legos/polygon/aavev3/contracts/IAaveV3LendingPoolAddressesProviderRegistry.sol";
@@ -28,7 +28,6 @@ import { IAdapter } from "@optyfi/defi-legos/interfaces/defiAdapters/contracts/I
 import { IAdapterHarvestReward } from "@optyfi/defi-legos/interfaces/defiAdapters/contracts/IAdapterHarvestReward.sol";
 import "@optyfi/defi-legos/interfaces/defiAdapters/contracts/IAdapterInvestLimit.sol";
 import "@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol";
-import "hardhat/console.sol";
 
 /**
  * @title Adapter for Aave V3 protocol
@@ -187,7 +186,7 @@ contract AaveV3Adapter is IAdapter, IAdapterHarvestReward, AdapterInvestLimitBas
             _codes[2] = abi.encode(
                 _lendingPool,
                 abi.encodeWithSignature(
-                    "deposit(address,uint256,address,uint16)",
+                    "supply(address,uint256,address,uint16)",
                     _underlyingToken,
                     _depositAmount,
                     _vault,
@@ -206,6 +205,7 @@ contract AaveV3Adapter is IAdapter, IAdapterHarvestReward, AdapterInvestLimitBas
         address _liquidityPoolAddressProviderRegistry,
         uint256 _amount
     ) public view override returns (bytes[] memory _codes) {
+        require(_amount > 0, "!amount");
         if (_amount > 0) {
             address _lendingPool = _getLendingPool(_liquidityPoolAddressProviderRegistry);
             address _liquidityPoolToken =
@@ -415,8 +415,8 @@ contract AaveV3Adapter is IAdapter, IAdapterHarvestReward, AdapterInvestLimitBas
 
     function _getLendingPool(address _lendingPoolAddressProviderRegistry) internal view returns (address) {
         return
-            IAaveLendingPoolAddressesProvider(_getLendingPoolAddressProvider(_lendingPoolAddressProviderRegistry))
-                .getLendingPool();
+            IAaveV3LendingPoolAddressesProvider(_getLendingPoolAddressProvider(_lendingPoolAddressProviderRegistry))
+                .getPool();
     }
 
     function _getLendingPoolAddressProvider(address _liquidityPoolAddressProviderRegistry)
