@@ -28,6 +28,7 @@ export interface LiquidityPool {
 declare module "mocha" {
   export interface Context {
     aaveAdapter: AaveAdapter;
+    aaveV3Adapter: AaveAdapter;
     testDeFiAdapter: TestDeFiAdapter;
     mockRegistry: MockContract;
     loadFixture: <T>(fixture: Fixture<T>) => Promise<T>;

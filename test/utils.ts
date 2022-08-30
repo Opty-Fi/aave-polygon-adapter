@@ -3,6 +3,32 @@ import hre, { ethers } from "hardhat";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { ERC20 } from "../typechain";
 
+export const CONTRACTS = {
+  IAaveV2LendingPoolAddressesProviderRegistry:
+    "@optyfi/defi-legos/polygon/aave/contracts/IAaveLendingPoolAddressesProviderRegistry.sol:IAaveLendingPoolAddressesProviderRegistry",
+  IAaveV3endingPoolAddressesProviderRegistry:
+    "@optyfi/defi-legos/polygon/aavev3/contracts/IAaveV3LendingPoolAddressesProviderRegistry.sol:IAaveV3LendingPoolAddressesProviderRegistry",
+  IAdapterRegistryBase: "IAdapterRegistryBase",
+  TestDeFiAdapter: "TestDeFiAdapter",
+  AaveAvaV2Adapter: "AaveAdapter",
+  AaveV3Adapter: "AaveV3Adapter",
+  ERC20: "ERC20",
+  IAaveIncentivesController:
+    "@optyfi/defi-legos/polygon/aave/contracts/IAaveIncentivesController.sol:IAaveIncentivesController",
+  IAaveV2LendingPoolAddressesProvider:
+    "@optyfi/defi-legos/polygon/aave/contracts/IAaveLendingPoolAddressesProvider.sol:IAaveLendingPoolAddressesProvider",
+  IAaveV2ProtocolDataProvider:
+    "@optyfi/defi-legos/polygon/aave/contracts/IAaveProtocolDataProvider.sol:IAaveProtocolDataProvider",
+  IAaveV2: "@optyfi/defi-legos/polygon/aave/contracts/IAave.sol:IAave",
+  IAaveV3RewardsController:
+    "@optyfi/defi-legos/polygon/aavev3/contracts/IAaveV3RewardsController.sol:IAaveV3RewardsController",
+  IAaveV3LendingPoolAddressesProvider:
+    "@optyfi/defi-legos/polygon/aavev3/contracts/IAaveV3LendingPoolAddressesProvider.sol:IAaveV3LendingPoolAddressesProvider",
+  IAaveV3ProtocolDataProvider:
+    "@optyfi/defi-legos/polygon/aavev3/contracts/IAaveV3ProtocolDataProvider.sol:IAaveV3ProtocolDataProvider",
+  IAaveV3: "@optyfi/defi-legos/polygon/aavev3/contracts/IAaveV3.sol:IAaveV3",
+};
+
 export function getOverrideOptions(): TransactionRequest {
   return {
     gasPrice: 1_000_000_00,
