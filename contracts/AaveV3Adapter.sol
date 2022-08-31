@@ -42,9 +42,9 @@ contract AaveV3Adapter is IAdapter, IAdapterHarvestReward, AdapterInvestLimitBas
         0x0100000000000000000000000000000000000000000000000000000000000000;
 
     /**
-     * @notice Uniswap V2 router contract address
+     * @notice QuickSwap contract address
      */
-    address public constant quickSwapV2Router02 = address(0xa5E0829CaCEd8fFDD4De3c43696c57F7D7A678ff);
+    address public constant quickSwapRouter = address(0xa5E0829CaCEd8fFDD4De3c43696c57F7D7A678ff);
 
     /**@notice PoS WMATIC */
     address public constant WMATIC = address(0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270);
@@ -84,15 +84,6 @@ contract AaveV3Adapter is IAdapter, IAdapterHarvestReward, AdapterInvestLimitBas
         for (uint256 _i; _i < _assets.length; _i++) {
             aaveAssetsList.push(_assets[_i]);
         }
-    }
-
-    /**
-     * @dev AaveV3 allows user to get mutiple reward tokens
-     * @notice Returns reward tokens list for the liquidity pool provided
-     * @return Returns the reward tokens list
-     */
-    function getRewardTokens() public view returns (address[] memory) {
-        return IAaveV3RewardsController(incentivesController).getRewardsList();
     }
 
     /**
@@ -333,7 +324,6 @@ contract AaveV3Adapter is IAdapter, IAdapterHarvestReward, AdapterInvestLimitBas
         return _underlyingTokenAmount;
     }
 
-    /* solhint-disable no-unused-vars */
     /**
      * @inheritdoc IAdapter
      */
@@ -345,8 +335,6 @@ contract AaveV3Adapter is IAdapter, IAdapterHarvestReward, AdapterInvestLimitBas
     ) external pure override returns (uint256) {
         return _redeemAmount;
     }
-
-    /* solhint-enable no-unused-vars */
 
     /**
      * @inheritdoc IAdapter
@@ -360,8 +348,6 @@ contract AaveV3Adapter is IAdapter, IAdapterHarvestReward, AdapterInvestLimitBas
         uint256 _balanceInToken = getAllAmountInToken(_vault, _underlyingToken, _liquidityPoolAddressProviderRegistry);
         return _balanceInToken >= _redeemAmount;
     }
-
-    /* solhint-disable no-unused-vars */
 
     /**
      * @inheritdoc IAdapter
@@ -445,7 +431,7 @@ contract AaveV3Adapter is IAdapter, IAdapterHarvestReward, AdapterInvestLimitBas
     ) internal view returns (bytes[] memory _codes) {
         if (_rewardTokenAmount > 0) {
             uint256[] memory _amounts =
-                IUniswapV2Router02(quickSwapV2Router02).getAmountsOut(
+                IUniswapV2Router02(quickSwapRouter).getAmountsOut(
                     _rewardTokenAmount,
                     _getPath(_rewardToken, _underlyingToken)
                 );
@@ -453,16 +439,16 @@ contract AaveV3Adapter is IAdapter, IAdapterHarvestReward, AdapterInvestLimitBas
                 _codes = new bytes[](3);
                 _codes[0] = abi.encode(
                     _rewardToken,
-                    abi.encodeCall(ERC20(_rewardToken).approve, (quickSwapV2Router02, uint256(0)))
+                    abi.encodeCall(ERC20(_rewardToken).approve, (quickSwapRouter, uint256(0)))
                 );
                 _codes[1] = abi.encode(
                     _rewardToken,
-                    abi.encodeCall(ERC20(_rewardToken).approve, (quickSwapV2Router02, _rewardTokenAmount))
+                    abi.encodeCall(ERC20(_rewardToken).approve, (quickSwapRouter, _rewardTokenAmount))
                 );
                 _codes[2] = abi.encode(
-                    quickSwapV2Router02,
+                    quickSwapRouter,
                     abi.encodeCall(
-                        IUniswapV2Router01(quickSwapV2Router02).swapExactTokensForTokens,
+                        IUniswapV2Router01(quickSwapRouter).swapExactTokensForTokens,
                         (
                             _rewardTokenAmount,
                             uint256(0),

@@ -4,7 +4,7 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import AaveAdapterParticulars from "@optyfi/defi-legos/polygon/aavev3";
 import { AaveV3Adapter, TestDeFiAdapter } from "../typechain";
 import { LiquidityPool, PoolItem, Signers } from "./types";
-import { shouldBeHaveLikeAaveAdapter } from "./AaveV3Adapter.behavior";
+import { shouldBeHaveLikeAaveV3Adapter } from "./AaveV3Adapter.behavior";
 const { pools }: { pools: LiquidityPool } = AaveAdapterParticulars;
 
 describe("Aave V3 on Polygon", function () {
@@ -31,6 +31,6 @@ describe("Aave V3 on Polygon", function () {
   });
   Object.keys(pools).map((token: string) => {
     const poolItem: PoolItem = pools[token];
-    shouldBeHaveLikeAaveAdapter(token, poolItem);
+    shouldBeHaveLikeAaveV3Adapter(token, poolItem);
   });
 });
