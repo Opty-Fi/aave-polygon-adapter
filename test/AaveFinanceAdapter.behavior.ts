@@ -39,7 +39,6 @@ export function shouldBeHaveLikeAaveAdapter(token: string, pool: PoolItem): void
       );
 
       incentiveContract = await hre.ethers.getContractAt("IAaveIncentivesController", AaveIncentivesController.address);
-      console.log(incentiveContract.address);
       skipRewards = (await incentiveContract.assets(pool.lpToken)).emissionPerSecond.gt(0) ? false : true;
       rewardTokenContract = await hre.ethers.getContractAt("ERC20", await incentiveContract.REWARD_TOKEN());
 
