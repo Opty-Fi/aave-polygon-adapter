@@ -324,6 +324,7 @@ contract AaveV3Adapter is IAdapter, IAdapterHarvestReward, AdapterInvestLimitBas
         return _underlyingTokenAmount;
     }
 
+    /* solhint-disable no-unused-vars */
     /**
      * @inheritdoc IAdapter
      */

@@ -2,10 +2,15 @@ import hre from "hardhat";
 import { Artifact } from "hardhat/types";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import AaveAdapterParticulars from "@optyfi/defi-legos/polygon/aave";
-import { AaveAdapter, TestDeFiAdapter } from "../typechain";
+import AaveV3AdapterParticulars from "@optyfi/defi-legos/polygon/aavev3";
+
+import { AaveAdapter, AaveV3Adapter, TestDeFiAdapter } from "../typechain";
 import { LiquidityPool, PoolItem, Signers } from "./types";
 import { shouldBeHaveLikeAaveAdapter } from "./AaveFinanceAdapter.behavior";
+import { shouldBeHaveLikeAaveV3Adapter } from "./AaveV3Adapter.behavior";
+
 const { pools }: { pools: LiquidityPool } = AaveAdapterParticulars;
+const { pools: poolsV3 }: { pools: LiquidityPool } = AaveV3AdapterParticulars;
 
 describe("Aave on Polygon", function () {
   before(async function () {
@@ -28,9 +33,18 @@ describe("Aave on Polygon", function () {
     this.aaveAdapter = <AaveAdapter>(
       await hre.waffle.deployContract(this.signers.deployer, aaveAdapterArtifact, [this.mockRegistry.address])
     );
+    const aaveV3AdapterArtifact: Artifact = await hre.artifacts.readArtifact("AaveV3Adapter");
+    this.aaveV3Adapter = <AaveV3Adapter>(
+      await hre.waffle.deployContract(this.signers.deployer, aaveV3AdapterArtifact, [this.mockRegistry.address])
+    );
   });
   Object.keys(pools).map((token: string) => {
     const poolItem: PoolItem = pools[token];
     shouldBeHaveLikeAaveAdapter(token, poolItem);
+  });
+
+  Object.keys(poolsV3).map((token: string) => {
+    const poolItem: PoolItem = poolsV3[token];
+    shouldBeHaveLikeAaveV3Adapter(token, poolItem);
   });
 });
