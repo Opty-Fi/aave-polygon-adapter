@@ -38,13 +38,17 @@ describe("Aave on Polygon", function () {
       await hre.waffle.deployContract(this.signers.deployer, aaveV3AdapterArtifact, [this.mockRegistry.address])
     );
   });
-  Object.keys(pools).map((token: string) => {
-    const poolItem: PoolItem = pools[token];
-    shouldBeHaveLikeAaveAdapter(token, poolItem);
+  describe("Aave V2 on Polygon", function () {
+    Object.keys(pools).map((token: string) => {
+      const poolItem: PoolItem = pools[token];
+      shouldBeHaveLikeAaveAdapter(token, poolItem);
+    });
   });
 
-  Object.keys(poolsV3).map((token: string) => {
-    const poolItem: PoolItem = poolsV3[token];
-    shouldBeHaveLikeAaveV3Adapter(token, poolItem);
+  describe("Aave V3 on Polygon", function () {
+    Object.keys(poolsV3).map((token: string) => {
+      const poolItem: PoolItem = poolsV3[token];
+      shouldBeHaveLikeAaveV3Adapter(token, poolItem);
+    });
   });
 });
