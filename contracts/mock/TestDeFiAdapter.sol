@@ -16,6 +16,12 @@ import { MultiCall } from "../utils/MultiCall.sol";
 ////////////////////////////////
 
 contract TestDeFiAdapter is MultiCall {
+    address public underlyingToken;
+
+    function setUnderlyingToken(address _underlyingToken) external {
+        underlyingToken = _underlyingToken;
+    }
+
     function testGetDepositAllCodes(
         address _underlyingToken,
         address _liquidityPool,

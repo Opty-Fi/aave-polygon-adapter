@@ -26,6 +26,7 @@ export function shouldBeHaveLikeAaveV3Adapter(token: string, pool: PoolItem): vo
     before(async function () {
       erc20Contract = <ERC20>await hre.ethers.getContractAt(CONTRACTS.ERC20, tokens[0]);
       decimals = (await erc20Contract.decimals()).toString();
+      await this.testDeFiAdapter.setUnderlyingToken(erc20Contract.address);
 
       lpTokenContract = <ERC20>await hre.ethers.getContractAt(CONTRACTS.ERC20, lpToken);
       lpTokenSymbol = await lpTokenContract.symbol();
@@ -55,11 +56,6 @@ export function shouldBeHaveLikeAaveV3Adapter(token: string, pool: PoolItem): vo
 
       await this.aaveV3Adapter.connect(this.signers.riskOperator).setMaxDepositPoolPct(providerRegistryAddress, 10000);
       await this.aaveV3Adapter.connect(this.signers.riskOperator).setMaxDepositProtocolMode(1);
-    });
-    it("1. setAaveAssetsList() should be only executed by Operator", async function () {
-      await expect(
-        this.aaveV3Adapter.connect(this.signers.alice).setAaveAssetsList([lpTokenContract.address]),
-      ).to.be.revertedWith("caller is not the operator");
     });
     it("2. getUnderlyingTokens() should return correct underlying tokens", async function () {
       expect(await this.aaveV3Adapter.getUnderlyingTokens(hre.ethers.constants.AddressZero, lpToken)).to.have.members(
@@ -330,22 +326,10 @@ export function shouldBeHaveLikeAaveV3Adapter(token: string, pool: PoolItem): vo
       ).to.be.eq(
         await this.aaveV3Adapter.getUnclaimedRewardTokenAmount(
           this.testDeFiAdapter.address,
-          hre.ethers.constants.AddressZero,
+          providerRegistryAddress,
           hre.ethers.constants.AddressZero,
         ),
       );
-    });
-    it(`25. getUnclaimedRewardTokensAmount() should return correct amount`, async function () {
-      if (!rewardTokenContract) {
-        this.skip();
-      }
-      const expectedResult = await incentiveContract.getAllUserRewards(
-        [lpTokenContract.address],
-        this.testDeFiAdapter.address,
-      );
-      const result = await this.aaveV3Adapter.getUnclaimedRewardTokensAmount(this.testDeFiAdapter.address);
-      expect(expectedResult[0]).to.eql(result.rewardsList);
-      expect(expectedResult[1]).to.eql(result.unclaimedAmounts);
     });
     it(`26. Claim all reward token`, async function () {
       if (!rewardTokenContract) {
