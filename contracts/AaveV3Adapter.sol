@@ -208,11 +208,10 @@ contract AaveV3Adapter is IAdapter, IAdapterHarvestReward, AdapterInvestLimitBas
     function getUnclaimedRewardTokenAmount(
         address payable _vault,
         address _liquidityPoolAddressProviderRegistry,
-        address
+        address _underlyingToken
     ) public view override returns (uint256 _amount) {
-        address underlyingToken = IVault(_vault).underlyingToken();
         address[] memory _assets = new address[](1);
-        _assets[0] = getLiquidityPoolToken(underlyingToken, _liquidityPoolAddressProviderRegistry);
+        _assets[0] = getLiquidityPoolToken(_underlyingToken, _liquidityPoolAddressProviderRegistry);
 
         return (
             IAaveV3RewardsController(incentivesController).getUserRewards(_assets, _vault, getRewardToken(address(0)))
@@ -352,8 +351,10 @@ contract AaveV3Adapter is IAdapter, IAdapterHarvestReward, AdapterInvestLimitBas
         address _underlyingToken,
         address
     ) external view override returns (bytes[] memory _codes) {
-        uint256 _rewardTokenAmount = ERC20(getRewardToken(address(0))).balanceOf(_vault);
-        return getHarvestSomeCodes(_vault, _underlyingToken, address(0), _rewardTokenAmount);
+        if (getRewardToken(address(0)) != address(0)) {
+            uint256 _rewardTokenAmount = ERC20(getRewardToken(address(0))).balanceOf(_vault);
+            return getHarvestSomeCodes(_vault, _underlyingToken, address(0), _rewardTokenAmount);
+        }
     }
 
     function _getLendingPool(address _lendingPoolAddressProviderRegistry) internal view returns (address) {
