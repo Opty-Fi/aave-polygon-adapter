@@ -1,4 +1,3 @@
-// solhint-disable no-unused-vars
 // SPDX-License-Identifier:MIT
 
 pragma solidity =0.8.11;
@@ -13,32 +12,32 @@ import { AdapterModifiersBase } from "./utils/AdapterModifiersBase.sol";
 import "./utils/AdapterInvestLimitBase.sol";
 
 //  interfaces
+import { IVault } from "./utils/interfaces/IVault.sol";
+
 import {
-    IAaveLendingPoolAddressesProvider
-} from "@optyfi/defi-legos/polygon/aave/contracts/IAaveLendingPoolAddressesProvider.sol";
+    IAaveV3LendingPoolAddressesProvider
+} from "@optyfi/defi-legos/polygon/aavev3/contracts/IAaveV3LendingPoolAddressesProvider.sol";
 import {
-    IAaveLendingPoolAddressesProviderRegistry
-} from "@optyfi/defi-legos/polygon/aave/contracts/IAaveLendingPoolAddressesProviderRegistry.sol";
-import { IAave, ReserveData } from "@optyfi/defi-legos/polygon/aave/contracts/IAave.sol";
-import { IAToken } from "@optyfi/defi-legos/polygon/aave/contracts/IAToken.sol";
+    IAaveV3LendingPoolAddressesProviderRegistry
+} from "@optyfi/defi-legos/polygon/aavev3/contracts/IAaveV3LendingPoolAddressesProviderRegistry.sol";
+import { IAaveV3, ReserveData } from "@optyfi/defi-legos/polygon/aavev3/contracts/IAaveV3.sol";
+import { IAaveV3Token } from "@optyfi/defi-legos/polygon/aavev3/contracts/IAaveV3Token.sol";
 import {
-    IAaveProtocolDataProvider,
-    UserReserveData,
-    ReserveDataProtocol,
-    ReserveConfigurationData
-} from "@optyfi/defi-legos/polygon/aave/contracts/IAaveProtocolDataProvider.sol";
-import { IAaveIncentivesController } from "@optyfi/defi-legos/polygon/aave/contracts/IAaveIncentivesController.sol";
+    IAaveV3ProtocolDataProvider
+} from "@optyfi/defi-legos/polygon/aavev3/contracts/IAaveV3ProtocolDataProvider.sol";
+import { IAaveV3RewardsController } from "@optyfi/defi-legos/polygon/aavev3/contracts/IAaveV3RewardsController.sol";
 import { IAdapter } from "@optyfi/defi-legos/interfaces/defiAdapters/contracts/IAdapter.sol";
+import { IAdapterHarvestReward } from "@optyfi/defi-legos/interfaces/defiAdapters/contracts/IAdapterHarvestReward.sol";
 import { IAdapterHarvestReward } from "@optyfi/defi-legos/interfaces/defiAdapters/contracts/IAdapterHarvestReward.sol";
 import "@optyfi/defi-legos/interfaces/defiAdapters/contracts/IAdapterInvestLimit.sol";
 import "@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol";
 
 /**
- * @title Adapter for Aave protocol
+ * @title Adapter for Aave V3 protocol
  * @author Opty.fi
  * @dev Abstraction layer to Aave's pools
  */
-contract AaveAdapter is IAdapter, IAdapterHarvestReward, AdapterInvestLimitBase {
+contract AaveV3Adapter is IAdapter, IAdapterHarvestReward, AdapterInvestLimitBase {
     using Address for address;
 
     /** @notice Aave's Data provider id */
@@ -54,7 +53,7 @@ contract AaveAdapter is IAdapter, IAdapterHarvestReward, AdapterInvestLimitBase 
     address public constant WMATIC = address(0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270);
 
     /**@notice incentivesController*/
-    address public constant incentivesController = address(0x357D51124f59836DeD84c8a1730D72B749d8BC23);
+    address public constant incentivesController = address(0x929EC64c34a17401F460460D4B9390518E5B473e);
 
     /* solhint-disable no-empty-blocks */
     constructor(address _registry) AdapterModifiersBase(_registry) {}
@@ -63,7 +62,11 @@ contract AaveAdapter is IAdapter, IAdapterHarvestReward, AdapterInvestLimitBase 
      * @inheritdoc IAdapter
      */
     function getRewardToken(address) public view override returns (address) {
-        return IAaveIncentivesController(incentivesController).REWARD_TOKEN();
+        address[] memory rewardsList = IAaveV3RewardsController(incentivesController).getRewardsList();
+        if (rewardsList.length > 0) {
+            return rewardsList[0];
+        }
+        return address(0);
     }
 
     /**
@@ -76,7 +79,7 @@ contract AaveAdapter is IAdapter, IAdapterHarvestReward, AdapterInvestLimitBase 
         returns (address)
     {
         address _lendingPool = _getLendingPool(_liquidityPoolAddressProviderRegistry);
-        ReserveData memory _reserveData = IAave(_lendingPool).getReserveData(_underlyingToken);
+        ReserveData memory _reserveData = IAaveV3(_lendingPool).getReserveData(_underlyingToken);
         return _reserveData.aTokenAddress;
     }
 
@@ -111,7 +114,10 @@ contract AaveAdapter is IAdapter, IAdapterHarvestReward, AdapterInvestLimitBase 
         override
         returns (uint256)
     {
-        return _getReserveData(_liquidityPoolAddressProviderRegistry, _underlyingToken).availableLiquidity;
+        return
+            ERC20(_underlyingToken).balanceOf(
+                getLiquidityPoolToken(_underlyingToken, _liquidityPoolAddressProviderRegistry)
+            );
     }
 
     /**
@@ -144,7 +150,7 @@ contract AaveAdapter is IAdapter, IAdapterHarvestReward, AdapterInvestLimitBase 
             _codes[2] = abi.encode(
                 _lendingPool,
                 abi.encodeWithSignature(
-                    "deposit(address,uint256,address,uint16)",
+                    "supply(address,uint256,address,uint16)",
                     _underlyingToken,
                     _depositAmount,
                     _vault,
@@ -163,6 +169,7 @@ contract AaveAdapter is IAdapter, IAdapterHarvestReward, AdapterInvestLimitBase 
         address _liquidityPoolAddressProviderRegistry,
         uint256 _amount
     ) public view override returns (bytes[] memory _codes) {
+        require(_amount > 0, "!amount");
         if (_amount > 0) {
             address _lendingPool = _getLendingPool(_liquidityPoolAddressProviderRegistry);
             address _liquidityPoolToken =
@@ -200,10 +207,15 @@ contract AaveAdapter is IAdapter, IAdapterHarvestReward, AdapterInvestLimitBase 
      */
     function getUnclaimedRewardTokenAmount(
         address payable _vault,
-        address,
-        address
-    ) public view override returns (uint256 _codes) {
-        return IAaveIncentivesController(incentivesController).getUserUnclaimedRewards(_vault);
+        address _liquidityPoolAddressProviderRegistry,
+        address _underlyingToken
+    ) public view override returns (uint256 _amount) {
+        address[] memory _assets = new address[](1);
+        _assets[0] = getLiquidityPoolToken(_underlyingToken, _liquidityPoolAddressProviderRegistry);
+
+        return (
+            IAaveV3RewardsController(incentivesController).getUserRewards(_assets, _vault, getRewardToken(address(0)))
+        );
     }
 
     /**
@@ -235,13 +247,13 @@ contract AaveAdapter is IAdapter, IAdapterHarvestReward, AdapterInvestLimitBase 
      * @inheritdoc IAdapter
      */
     function getUnderlyingTokens(address, address _liquidityPoolToken)
-        external
+        public
         view
         override
         returns (address[] memory _underlyingTokens)
     {
         _underlyingTokens = new address[](1);
-        _underlyingTokens[0] = IAToken(_liquidityPoolToken).UNDERLYING_ASSET_ADDRESS();
+        _underlyingTokens[0] = IAaveV3Token(_liquidityPoolToken).UNDERLYING_ASSET_ADDRESS();
     }
 
     /**
@@ -266,6 +278,7 @@ contract AaveAdapter is IAdapter, IAdapterHarvestReward, AdapterInvestLimitBase 
         return _underlyingTokenAmount;
     }
 
+    /* solhint-disable no-unused-vars */
     /**
      * @inheritdoc IAdapter
      */
@@ -301,18 +314,19 @@ contract AaveAdapter is IAdapter, IAdapterHarvestReward, AdapterInvestLimitBase 
     /**
      * @inheritdoc IAdapterHarvestReward
      */
-    function getClaimRewardTokenCode(address payable _vault, address)
+    function getClaimRewardTokenCode(address payable _vault, address _liquidityPoolAddressProviderRegistry)
         external
         view
         override
         returns (bytes[] memory _codes)
     {
-        uint256 _amount = getUnclaimedRewardTokenAmount(_vault, address(0), address(0));
-        address[] memory _assets;
+        address underlyingToken = IVault(_vault).underlyingToken();
+        address[] memory _assets = new address[](1);
+        _assets[0] = getLiquidityPoolToken(underlyingToken, _liquidityPoolAddressProviderRegistry);
         _codes = new bytes[](1);
         _codes[0] = abi.encode(
             incentivesController,
-            abi.encodeWithSignature("claimRewards(address[],uint256,address)", _assets, _amount, _vault)
+            abi.encodeWithSignature("claimAllRewards(address[],address)", _assets, _vault)
         );
     }
 
@@ -327,6 +341,8 @@ contract AaveAdapter is IAdapter, IAdapterHarvestReward, AdapterInvestLimitBase 
         returns (bytes[] memory _codes)
     {}
 
+    /*solhint-enable  no-empty-blocks*/
+
     /**
      * @inheritdoc IAdapterHarvestReward
      */
@@ -335,25 +351,16 @@ contract AaveAdapter is IAdapter, IAdapterHarvestReward, AdapterInvestLimitBase 
         address _underlyingToken,
         address
     ) external view override returns (bytes[] memory _codes) {
-        uint256 _rewardTokenAmount = ERC20(getRewardToken(address(0))).balanceOf(_vault);
-        return getHarvestSomeCodes(_vault, _underlyingToken, address(0), _rewardTokenAmount);
+        if (getRewardToken(address(0)) != address(0)) {
+            uint256 _rewardTokenAmount = ERC20(getRewardToken(address(0))).balanceOf(_vault);
+            return getHarvestSomeCodes(_vault, _underlyingToken, address(0), _rewardTokenAmount);
+        }
     }
 
     function _getLendingPool(address _lendingPoolAddressProviderRegistry) internal view returns (address) {
         return
-            IAaveLendingPoolAddressesProvider(_getLendingPoolAddressProvider(_lendingPoolAddressProviderRegistry))
-                .getLendingPool();
-    }
-
-    function _getReserveData(address _liquidityPoolAddressProviderRegistry, address _underlyingToken)
-        internal
-        view
-        returns (ReserveDataProtocol memory)
-    {
-        return
-            IAaveProtocolDataProvider(_getProtocolDataProvider(_liquidityPoolAddressProviderRegistry)).getReserveData(
-                _underlyingToken
-            );
+            IAaveV3LendingPoolAddressesProvider(_getLendingPoolAddressProvider(_lendingPoolAddressProviderRegistry))
+                .getPool();
     }
 
     function _getLendingPoolAddressProvider(address _liquidityPoolAddressProviderRegistry)
@@ -362,14 +369,8 @@ contract AaveAdapter is IAdapter, IAdapterHarvestReward, AdapterInvestLimitBase 
         returns (address)
     {
         return
-            IAaveLendingPoolAddressesProviderRegistry(_liquidityPoolAddressProviderRegistry)
+            IAaveV3LendingPoolAddressesProviderRegistry(_liquidityPoolAddressProviderRegistry)
                 .getAddressesProvidersList()[0];
-    }
-
-    function _getProtocolDataProvider(address _liquidityPoolAddressProviderRegistry) internal view returns (address) {
-        return
-            IAaveLendingPoolAddressesProvider(_getLendingPoolAddressProvider(_liquidityPoolAddressProviderRegistry))
-                .getAddress(PROTOCOL_DATA_PROVIDER_ID);
     }
 
     /**
