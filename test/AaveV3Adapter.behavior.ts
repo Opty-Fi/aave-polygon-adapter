@@ -23,6 +23,8 @@ export function shouldBeHaveLikeAaveV3Adapter(token: string, pool: PoolItem): vo
     let rewardTokenContract: ERC20;
     let erc20Contract: ERC20;
     let lpTokenSymbol: string = "";
+    let emissionPerSecond: BigNumber;
+
     before(async function () {
       erc20Contract = <ERC20>await hre.ethers.getContractAt(CONTRACTS.ERC20, tokens[0]);
       decimals = (await erc20Contract.decimals()).toString();
@@ -43,6 +45,9 @@ export function shouldBeHaveLikeAaveV3Adapter(token: string, pool: PoolItem): vo
         rewardTokenContract = <ERC20>(
           await hre.ethers.getContractAt(CONTRACTS.ERC20, (await incentiveContract.getRewardsList())[0])
         );
+        emissionPerSecond = (
+          await incentiveContract.getRewardsData(lpTokenContract.address, rewardTokenContract.address)
+        )[1];
       }
       lendingProvider = <IAaveV3LendingPoolAddressesProvider>(
         await hre.ethers.getContractAt(
@@ -341,7 +346,7 @@ export function shouldBeHaveLikeAaveV3Adapter(token: string, pool: PoolItem): vo
       const currentBalance = rewardTokenContract
         ? await rewardTokenContract.balanceOf(this.testDeFiAdapter.address)
         : 0;
-      rewardTokenContract
+      rewardTokenContract && emissionPerSecond.gt(0)
         ? expect(currentBalance).to.gt(previousBalance)
         : expect(currentBalance).to.eq(previousBalance);
     });
@@ -359,7 +364,7 @@ export function shouldBeHaveLikeAaveV3Adapter(token: string, pool: PoolItem): vo
 
       const currentBalance = await erc20Contract.balanceOf(this.testDeFiAdapter.address);
 
-      rewardTokenContract
+      rewardTokenContract && emissionPerSecond.gt(0)
         ? expect(currentBalance).to.gt(previousBalance)
         : expect(currentBalance).to.eq(previousBalance);
     });

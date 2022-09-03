@@ -323,23 +323,16 @@ export function shouldBeHaveLikeAaveAdapter(token: string, pool: PoolItem): void
       );
     });
     it(`24. Claim all reward token`, async function () {
-      if (skipRewards) {
-        this.skip();
-      }
-      const previousBalance = await rewardTokenContract.balanceOf(this.testDeFiAdapter.address);
+      const previousBalance = skipRewards ? await rewardTokenContract.balanceOf(this.testDeFiAdapter.address) : "0";
 
       await this.testDeFiAdapter.testClaimRewardTokenCode(providerRegistryAddress, this.aaveAdapter.address);
 
-      const currentBalance = await rewardTokenContract.balanceOf(this.testDeFiAdapter.address);
+      const currentBalance = skipRewards ? await rewardTokenContract.balanceOf(this.testDeFiAdapter.address) : "0";
 
-      expect(currentBalance).to.gt(previousBalance);
+      skipRewards ? expect(currentBalance).to.eq(previousBalance) : expect(currentBalance).to.gt(previousBalance);
     });
     it(`25. Harvest all reward token`, async function () {
-      if (skipRewards) {
-        this.skip();
-      }
-
-      if (erc20Contract.address === rewardTokenContract.address) {
+      if (rewardTokenContract && erc20Contract.address === rewardTokenContract.address) {
         this.skip();
       }
       const previousBalance = await erc20Contract.balanceOf(this.testDeFiAdapter.address);
@@ -352,7 +345,7 @@ export function shouldBeHaveLikeAaveAdapter(token: string, pool: PoolItem): void
 
       const currentBalance = await erc20Contract.balanceOf(this.testDeFiAdapter.address);
 
-      expect(currentBalance).to.gt(previousBalance);
+      skipRewards ? expect(currentBalance).to.eq(previousBalance) : expect(currentBalance).to.gt(previousBalance);
     });
   });
 }
